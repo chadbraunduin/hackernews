@@ -1,2 +1,2 @@
 (load "hn-core.lisp")
-(save-lisp-and-die "hacker-news" :executable t :toplevel #'start-main)
+(save-lisp-and-die "hackernews" :executable t :toplevel #'start-main)

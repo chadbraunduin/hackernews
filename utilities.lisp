@@ -1,9 +1,6 @@
 
 (defun run-cmd (cmd &rest args)
-  (run-program cmd args :input t :output t :wait t))
-
-(defun clear-terminal ()
-  (run-cmd *clear-cmd*))
+  (sb-ext:run-program cmd args :input t :output t :wait t))
 
 (defun browse (url)
   (run-cmd *browser-cmd*
@@ -36,22 +33,13 @@
 	(clean-html-str clean)
 	(string-trim " " clean))))
 
+(defun flatten-alist (alst)
+  (mapcan (lambda (x) (list (car x) (cdr x))) alst))
+
 (defun integerlistp (lst)
   (notany #'alpha-char-p lst))
 
-(defun colored-text (attr bgcolor fgcolor text)
-  (if *uses-colored-text*
-      (format nil "~c[~d;~d;~dm~a~c[m" #\ attr bgcolor fgcolor text #\)
-      text))
-
-(defun error-text (text)
-  (colored-text 1 41 37 text))
-
-(defun banner-text (text)
-  (colored-text 1 47 30 text))
-
-(defun url-text (text)
-  (colored-text 4 0 36 text))
-
-(defun nesting-level-text (text)
-  (colored-text 0 0 36 text))
+(defun text-to-str (text)
+  (if text
+      (coerce (mapcar #'code-char (reverse text)) 'string)
+      ""))
