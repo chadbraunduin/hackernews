@@ -19,22 +19,24 @@ I developed this on a Ubuntu machine. The requirements I know of are:
 * sbcl (Steel Bank Common Lisp)
 * ncurses-dev (the ncurses library)
 
-## Instructions (Ubuntu)
+## Installation Instructions (Ubuntu)
     sudo apt-get install ncurses-dev sbcl lynx
-    git clone git@github.com:chadbraunduin/hacker-news.git
+    git clone git@github.com:chadbraunduin/hackernews.git
     cd hacker-news
     sbcl --load save-core.lisp
     ./hackernews
 
-## Instructions (other *nix)
+## Installation Instructions (other *nix)
     *install ncurses-dev library, sbcl, and lynx*
-    git clone git@github.com:chadbraunduin/hacker-news.git
+    git clone git@github.com:chadbraunduin/hackernews.git
     cd hacker-news
     sbcl --load save-core.lisp
     ./hackernews
 
 ## Commands
 ### All pages
+use the arrow keys, page keys, home key, and end key to navigate items
+
 **q** - quit
 
 **b** - go back to a previous screen or page
@@ -53,6 +55,21 @@ type in a username to view the user's profile
 type in the post number to view it in lynx
 
 type in "c" plus the post number to view the comments for it
+
+## Credits
+I use the [Unofficial Hacker News API](http://api.ihackernews.com/) developed by [Ronnie Roller](http://ronnieroller.com/) to gather the data.
+
+I also require the following libraries within the code:
+
+* asdf
+* drakma
+* cl-json
+* cl-ppcre
+* uffi
+* cl-ncurses
+
+## Known issues
+Every once in a while the cl-json method that converts the raw data into a CL form blows up. The error message returned indicates that there is an invalid character within the data. Usually, this issue goes away within a couple of minutes. I haven't haven't taken the time to fully investigate it.
 
 ## TODOS
 * Allow upvoting of posts and comments
