@@ -21,11 +21,15 @@ I developed this on a Ubuntu machine. The requirements I know of are:
 
 ## Instructions (Ubuntu)
     sudo apt-get install ncurses-dev sbcl lynx
+    git clone git@github.com:chadbraunduin/hacker-news.git
+    cd hacker-news
     sbcl --load save-core.lisp
     ./hackernews
 
 ## Instructions (other *nix)
     *install ncurses-dev library, sbcl, and lynx*
+    git clone git@github.com:chadbraunduin/hacker-news.git
+    cd hacker-news
     sbcl --load save-core.lisp
     ./hackernews
 
