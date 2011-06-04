@@ -7,10 +7,6 @@
 	   "-accept_all_cookies "
 	   url))
 
-(defun insensitive-equal (str1 str2)
-  (equal (string-downcase str1)
-	 (string-downcase str2)))
-
 (defun url-output (url)
   (let ((s (drakma:http-request url :want-stream t)))
     (json:decode-json-from-string (read-line s))))
@@ -28,22 +24,32 @@
 
 (defun clean-html-str (comment-str)
   (let* ((clean (ppcre:regex-replace "<[a-zA-Z]+.*?>" comment-str " "))
-	 (clean (ppcre:regex-replace "</[a-zA-Z]+>" clean " "))
-	 ;; a dirty hack to avoid the following fatal error
-	 ;; %n in writable segment detected
-	 (clean (ppcre:regex-replace "% n" clean "%_ n"))
-	 )
+	 (clean (ppcre:regex-replace "</[a-zA-Z]+>" clean " ")))
+    ;; a dirty hack to avoid the following fatal error
+    ;; %n in writable segment detected
+    (let ((pattern "%\\s*n"))
+      (loop for match in (ppcre:all-matches-as-strings pattern clean)
+	 for whitespace = (repeat-char #\space (- (length match) 2))
+	 do
+	   (setf clean (ppcre:regex-replace-all
+			(format nil "%~an" whitespace)
+			clean
+			(format nil "%_~an" whitespace)))))
     (if (not (equal clean comment-str))
 	(clean-html-str clean)
 	(string-trim " " clean))))
 
-(defun flatten-alist (alst)
-  (mapcan (lambda (x) (list (car x) (cdr x))) alst))
+(defun repeat-char (char n)
+  (coerce  (loop repeat n
+	      collect char) 'string))
 
-(defun integerlistp (lst)
-  (notany #'alpha-char-p lst))
+(defun flatten-alist (alist)
+  (mapcan (lambda (x) (list (car x) (cdr x))) alist))
+
+(defun integerlistp (list)
+  (every #'digit-char-p list))
 
 (defun text-to-str (text)
   (if text
-      (coerce (mapcar #'code-char (reverse text)) 'string)
+      (map 'string #'code-char (reverse text))
       ""))

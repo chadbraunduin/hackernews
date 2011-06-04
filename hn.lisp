@@ -106,7 +106,7 @@
 (defun poster (username items)
   (let ((posters (remove-if-not
 		  (lambda (item)
-		    (insensitive-equal username (hn-item-posted-by item)))
+		    (string-equal username (hn-item-posted-by item)))
 		  (coerce items 'list))))
     (when posters
       (car posters))))
@@ -178,7 +178,7 @@
 (defun commenter (username comments)
   (let ((commenters (remove-if-not
 		     (lambda (comment)
-		       (insensitive-equal username (hn-comment-posted-by comment)))
+		       (string-equal username (hn-comment-posted-by comment)))
 		     comments)))
     (when commenters
       (car commenters))))
@@ -271,8 +271,7 @@
 (defmethod handle-cmd (cmd page))
 
 (defmethod handle-cmd (cmd (page home-page))
-  (let ((post (poster cmd (home-page-items page)))
-	(cmd-lst (coerce cmd 'list)))
+  (let ((post (poster cmd (home-page-items page))))
     (cond
       (post
        (build-user-page (hn-item-posted-by post) page)) ;; view user page
@@ -287,15 +286,17 @@
       ((equal cmd "b")
        (page-back page)) ; back a page
       ((and (not (string-equal cmd ""))
-	    (integerlistp cmd-lst)
+	    (integerlistp cmd)
 	    (validpostnumberp (parse-integer cmd) page))
        (let* ((item (get-item cmd page))
 	      (url (hn-item-url item)))
 	 (browse url)
 	 page)) ;; open a link
-      ((and (equal #\c (car cmd-lst))
-	    (integerlistp (cdr cmd-lst)))
-       (build-comments-page (get-item (coerce (cdr cmd-lst) 'string) page) nil page)) ;; view comments
+      ((and (not (string-equal cmd ""))
+	    (equal (char cmd 0) #\c)
+	    (integerlistp (subseq cmd 1))
+	    (validpostnumberp (parse-integer (subseq cmd 1)) page))
+       (build-comments-page (get-item (subseq cmd 1) page) nil page)) ;; view comments
       (t (handle-default cmd page)))))
 
 (defmethod handle-cmd (cmd (page user-page))
