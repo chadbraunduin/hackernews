@@ -28,7 +28,11 @@
 
 (defun clean-html-str (comment-str)
   (let* ((clean (ppcre:regex-replace "<[a-zA-Z]+.*?>" comment-str " "))
-	 (clean (ppcre:regex-replace "</[a-zA-Z]+>" clean " ")))
+	 (clean (ppcre:regex-replace "</[a-zA-Z]+>" clean " "))
+	 ;; a dirty hack to avoid the following fatal error
+	 ;; %n in writable segment detected
+	 (clean (ppcre:regex-replace "% n" clean "%_ n"))
+	 )
     (if (not (equal clean comment-str))
 	(clean-html-str clean)
 	(string-trim " " clean))))
