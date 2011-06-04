@@ -199,8 +199,8 @@
 			  (post-number n
 				       (home-page-index page)
 				       *posts-per-page*)
-			  (hn-item-title item)
-			  (short-url item))
+			  (clean-html-str (hn-item-title item))
+			  (clean-html-str (short-url item)))
 		  (format nil "~d points by ~a ~a | ~a"
 			  (hn-item-points item)
 			  (hn-item-posted-by item)
