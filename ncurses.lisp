@@ -86,7 +86,11 @@
        do
 	 (loop for line in item
 	    do
-	      (wprintw mypad (format nil "~a~%" line))))
+	      (loop for char across line
+		 do
+		   (waddch mypad (char-code char)))
+	      (waddch mypad (char-code #\newline))
+	      ))
     (wattroff mypad (color-pair *highlight-color-number*)))
 
   ;; print instructions

@@ -50,8 +50,10 @@
   (back-page nil))
 
 (defstruct (comments-page (:include hn-page))
+  text
   (comments nil)
-  (back-page nil))
+  (back-page nil)
+  (back-item nil))
 
 (defstruct hn-item
   title
@@ -60,7 +62,8 @@
   comment-count
   points
   posted-ago
-  posted-by)
+  posted-by
+  (askhn? nil))
 
 (defstruct hn-user
   username
@@ -82,6 +85,11 @@
   (nesting-level 0))
 
 ;; news page methods
+(defun askhnp (item)
+  (let ((url (hn-item-url item)))
+    (when (ppcre:scan "^/comments/\\d+" url)
+      t)))
+
 (defun build-home-page (url &optional next-id page-index title)
   (let* ((page (make-home-page :url url))
 	 (output (url-output (funcall (hn-page-url page) next-id)))
@@ -97,7 +105,9 @@
     (setf (home-page-items page) (map 'vector
 				      (lambda
 					  (raw-item)
-					(apply #'make-hn-item raw-item))
+					(let ((item (apply #'make-hn-item raw-item)))
+					  (setf (hn-item-askhn? item) (askhnp item))
+					  item))
 				      (mapcar
 				       #'flatten-alist
 				       raw-items)))
@@ -168,8 +178,14 @@
 (defun build-comments-page (item &optional page-index back-page)
   (let* ((item-id (hn-item-id item))
 	 (url (comments-url item-id))
-	 (page (make-comments-page :url url :title (hn-item-title item) :back-page back-page))
-	 (raw-comments (cdr (car (cdr (url-output url))))))
+	 (raw-output (url-output url))
+	 (text (cdr (car raw-output)))
+	 (page (make-comments-page :url url
+				   :title (hn-item-title item)
+				   :text text
+				   :back-page back-page
+				   :back-item item))
+	 (raw-comments (cdr (car (cdr raw-output)))))
     (when page-index
       (setf (comments-page-index page) page-index))
     (setf (comments-page-comments page) (build-comments raw-comments 0))
@@ -186,28 +202,31 @@
 ;; prepare data for the screen
 (defmethod printable-items (page))
 
+(defun comment-count-str (count)
+  (if (eq count 1)
+      "1 comment"
+      (format nil "~d comments" count)))
+
 (defmethod printable-items ((page home-page))
   (let ((items (home-page-items page)))
-    (labels ((comment-count-str (count)
-	       (if (eq count 1)
-		   "1 comment"
-		   (format nil "~d comments" count))))
-      (loop for item across items
-	 for n from 0
-	 collect (list
-		  (format nil "~d. ~a \(~a\)"
-			  (post-number n
-				       (home-page-index page)
-				       *posts-per-page*)
-			  (clean-html-str (hn-item-title item))
-			  (clean-html-str (short-url item)))
-		  (format nil "~d points by ~a ~a | ~a"
-			  (hn-item-points item)
-			  (hn-item-posted-by item)
-			  (hn-item-posted-ago item)
-			  (comment-count-str (hn-item-comment-count item)))
-		  "" ;; blank line for spacing
-		  )))))
+    (loop for item across items
+       for n from 0
+       collect (list
+		(format nil "~d. ~a~a"
+			(post-number n
+				     (home-page-index page)
+				     *posts-per-page*)
+			(clean-html-str (hn-item-title item))
+			(if (hn-item-askhn? item)
+			    ""
+			    (format nil " \(~a\)" (clean-html-str (short-url item)))))
+		(format nil "~d points by ~a ~a | ~a"
+			(hn-item-points item)
+			(hn-item-posted-by item)
+			(hn-item-posted-ago item)
+			(comment-count-str (hn-item-comment-count item)))
+		"" ;; blank line for spacing
+		))))
 
 (defmethod printable-items ((page user-page))
   (let ((user (user-page-user page)))
@@ -227,21 +246,28 @@
 		#'concatenate
 		'string
 		(loop repeat nesting-level collect " >>"))))
-      (loop for comment in comments
-	 for nesting-level = (hn-comment-nesting-level comment)
-	 collect
-	   (append (when (> nesting-level 0)
-		     (list
-		      (format nil "~d~a"
-			      nesting-level
-			      (nesting-level-str nesting-level))))
-		   (list
-		    (format nil "~a ~a"
-			    (hn-comment-posted-by comment)
-			    (hn-comment-posted-ago comment))
-		    (clean-html-str (hn-comment-comment comment))
-		    "" ;; blank line for spacing
-		    ))))))
+      (let ((text (comments-page-text page))
+	    (print-comments
+	     (loop for comment in comments
+		for nesting-level = (hn-comment-nesting-level comment)
+		collect
+		  (append (when (> nesting-level 0)
+			    (list
+			     (format nil "~d~a"
+				     nesting-level
+				     (nesting-level-str nesting-level))))
+			  (list
+			   (format nil "~a ~a"
+				   (hn-comment-posted-by comment)
+				   (hn-comment-posted-ago comment))
+			   (clean-html-str (hn-comment-comment comment))
+			   "" ;; blank line for spacing
+			   )))))
+	(if (not (string-equal text ""))
+	    (cons (list (clean-html-str text)
+			  "")
+		    print-comments)
+	    print-comments)))))
 
 (defmethod instructions-str (page) "")
 
@@ -257,8 +283,13 @@
 (defmethod subtitle-str (page) "")
 
 (defmethod subtitle-str ((page comments-page))
-  (let ((comment-count (length (comments-page-comments page))))
-    (format nil "~d total comments" comment-count)))
+  (let ((back-item (comments-page-back-item page))
+	(comment-count (length (comments-page-comments page))))
+    (format nil "~d points by ~a ~a | ~a"
+	    (hn-item-points back-item)
+	    (hn-item-posted-by back-item)
+	    (hn-item-posted-ago back-item)
+	    (comment-count-str comment-count))))
 
 ;; handle valid user commands
 (defun handle-default (cmd page)
@@ -289,9 +320,13 @@
 	    (integerlistp cmd)
 	    (validpostnumberp (parse-integer cmd) page))
        (let* ((item (get-item cmd page))
-	      (url (hn-item-url item)))
-	 (browse url)
-	 page)) ;; open a link
+	      (url (hn-item-url item))
+	      (askhn? (hn-item-askhn? item)))
+	 (if askhn?  ;; if item is "askHN", read the comments only
+	     (handle-cmd (concatenate 'string "c" cmd) page)
+	     (progn
+	       (browse url)
+	       page)))) ;; open a link
       ((and (not (string-equal cmd ""))
 	    (equal (char cmd 0) #\c)
 	    (integerlistp (subseq cmd 1))
