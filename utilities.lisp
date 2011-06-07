@@ -24,7 +24,8 @@
 
 (defun clean-html-str (comment-str)
   (let* ((clean (ppcre:regex-replace "<[a-zA-Z]+.*?>" comment-str " "))
-	 (clean (ppcre:regex-replace "</[a-zA-Z]+>" clean " ")))
+	 (clean (ppcre:regex-replace "</[a-zA-Z]+>" clean " "))
+	 )
     ;; a dirty hack to avoid the following fatal error
     ;; %n in writable segment detected
     (let ((pattern "%\\s*n"))
@@ -42,6 +43,31 @@
 (defun repeat-char (char n)
   (coerce  (loop repeat n
 	      collect char) 'string))
+
+(defun word-wrap (text start curmaxx &optional (acc nil))
+  (if (> (length text) start)
+      (let* ((curendx (+ start (1- curmaxx)))
+	     (curendx (if (> curendx (length text))
+			  (length text)
+			  curendx))
+	     (line (subseq text start curendx)))
+	(if (and (< (- curendx start) (1- curmaxx))
+		 (>= (- curendx start) (length line)))
+	    (reverse (cons line acc))
+	    (let* ((adj-count (loop for c across (reverse line)
+				 until (or (eq c #\newline)
+					   (eq c #\space))
+				 count c))
+		   (adj-count (if (eq adj-count (length line))
+				  0
+				  adj-count))
+		   (endx (if (> curmaxx (length line))
+			     (length line)
+			     curmaxx))
+		   (endx (- endx adj-count))
+		   (adj-line (subseq line 0 endx)))
+	      (word-wrap text (+ start endx) curmaxx (cons adj-line acc)))))
+      (reverse acc)))
 
 (defun flatten-alist (alist)
   (mapcan (lambda (x) (list (car x) (cdr x))) alist))

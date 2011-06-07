@@ -77,7 +77,7 @@
   (mvwprintw bannerwin 2 0 (subtitle-str page))
 
   ;; build pad
-  (let* ((items (printable-items page))
+  (let* ((items (printable-items page curmaxx))
 	 (total-lines-needed (pad-lines-needed items curmaxx)))
     (setf (hn-page-total-lines-needed page) total-lines-needed)
     (setf mypad (newpad total-lines-needed curmaxx))
@@ -147,7 +147,7 @@
 	 (scroll-pos (hn-page-scroll-pos page))
 	 (end-position (- total-lines-needed
 			  (- (pad-visible-lines)
-			     (length (car (reverse (printable-items page))))))))
+			     (length (car (reverse (printable-items page curmaxx))))))))
     (when (or (eq dir 'home)
 	      (eq dir 'end)
 	      (and (< scroll-pos end-position)

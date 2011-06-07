@@ -71,6 +71,8 @@ I also require the following libraries within the code:
 ## Known issues
 Every once in a while the cl-json method that converts the raw data into a CL form blows up. The error message returned indicates that there is an invalid character within the data. Usually, this issue goes away within a couple of minutes. I haven't haven't taken the time to fully investigate it.
 
+Also, within the comments, the little ellipse character that appears after an edit is not displaying correctly. Not sure if it is getting mangled by the API in transmission or if it is something my code is doing.
+
 ## TODOS
 * Allow upvoting of posts and comments
 * Get this to work in Windows

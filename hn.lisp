@@ -200,14 +200,16 @@
       (car commenters))))
 
 ;; prepare data for the screen
-(defmethod printable-items (page))
+(defgeneric printable-items (page curmaxx)
+  (:documentation
+   "prepare page items for printing to the screen"))
 
 (defun comment-count-str (count)
   (if (eq count 1)
       "1 comment"
       (format nil "~d comments" count)))
 
-(defmethod printable-items ((page home-page))
+(defmethod printable-items ((page home-page) curmaxx)
   (let ((items (home-page-items page)))
     (loop for item across items
        for n from 0
@@ -228,18 +230,22 @@
 		"" ;; blank line for spacing
 		))))
 
-(defmethod printable-items ((page user-page))
+(defmethod printable-items ((page user-page) curmaxx)
   (let ((user (user-page-user page)))
     (list
-     (list
-      (format nil "user: ~a" (hn-user-username user))
-      (format nil "created: ~a" (hn-user-created-ago user))
-      (format nil "karma: ~d" (hn-user-karma user))
-      (format nil "about: ~a" (clean-html-str (hn-user-about user)))
-      "" ;; blank line for spacing
-      ))))
+     (append
+      (list
+       (format nil "user: ~a" (hn-user-username user))
+       (format nil "created: ~a" (hn-user-created-ago user))
+       (format nil "karma: ~d" (hn-user-karma user)))
+      (word-wrap (concatenate 'string "about: "
+			      (clean-html-str (hn-user-about user)))
+		 0
+		 curmaxx)
+      (list "" ;; blank line for spacing
+	    )))))
 
-(defmethod printable-items ((page comments-page))
+(defmethod printable-items ((page comments-page) curmaxx)
   (let ((comments (comments-page-comments page)))
     (labels ((nesting-level-str (nesting-level)
 	       (apply
@@ -259,14 +265,16 @@
 			  (list
 			   (format nil "~a ~a"
 				   (hn-comment-posted-by comment)
-				   (hn-comment-posted-ago comment))
-			   (clean-html-str (hn-comment-comment comment))
-			   "" ;; blank line for spacing
-			   )))))
+				   (hn-comment-posted-ago comment)))
+			  (word-wrap (clean-html-str (hn-comment-comment comment))
+				     0
+				     curmaxx)
+			  (list "" ;; blank line for spacing
+				)))))
 	(if (not (string-equal text ""))
 	    (cons (list (clean-html-str text)
-			  "")
-		    print-comments)
+			"")
+		  print-comments)
 	    print-comments)))))
 
 (defmethod instructions-str (page) "")
