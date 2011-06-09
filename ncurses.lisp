@@ -72,7 +72,7 @@
   ;; print banner and subtitle
   (setf bannerwin (newwin 4 curmaxx 0 0))
   (wattron bannerwin (color-pair *banner-color-number*))
-  (mvwprintw bannerwin 1 0 (format nil "Hacker news - ~a" (hn-page-title page)))
+  (mvwprintw bannerwin 1 0 (format nil "Hacker news - ~a" (title-str page)))
   (wattroff bannerwin (color-pair *banner-color-number*))
   (mvwprintw bannerwin 2 0 (subtitle-str page))
 

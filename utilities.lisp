@@ -44,16 +44,23 @@
   (coerce  (loop repeat n
 	      collect char) 'string))
 
+;; not perfect but probably good enough for now
 (defun word-wrap (text start curmaxx &optional (acc nil))
   (if (> (length text) start)
-      (let* ((curendx (+ start (1- curmaxx)))
+      ;; this "let" gets the potential line in question
+      (let* ((right-padding 2)
+	     (curendx (+ start (- curmaxx right-padding)))
 	     (curendx (if (> curendx (length text))
 			  (length text)
 			  curendx))
 	     (line (subseq text start curendx)))
-	(if (and (< (- curendx start) (1- curmaxx))
+	;; if we've reached the end of the text, exit the function returning all'
+	;; the lines in the correct order
+	(if (and (< (- curendx start) (- curmaxx right-padding))
 		 (>= (- curendx start) (length line)))
 	    (reverse (cons line acc))
+	    ;; count how many characters it takes us to get to a space or newline
+	    ;; drop those characters down to the next line to be printed
 	    (let* ((adj-count (loop for c across (reverse line)
 				 until (or (eq c #\newline)
 					   (eq c #\space))

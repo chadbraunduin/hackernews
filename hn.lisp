@@ -200,6 +200,24 @@
       (car commenters))))
 
 ;; prepare data for the screen
+(defmethod title-str (page)
+  (hn-page-title page))
+
+(defmethod subtitle-str (page) "")
+
+(defun comments-page-id (page)
+  (parse-integer (car (ppcre:all-matches-as-strings "\\d+$" (comments-page-url page)))))
+
+(defmethod subtitle-str ((page comments-page))
+  (let ((back-item (comments-page-back-item page))
+	(comment-count (length (comments-page-comments page))))
+    (format nil "~d | ~d points by ~a ~a | ~a"
+	    (comments-page-id page)
+	    (hn-item-points back-item)
+	    (hn-item-posted-by back-item)
+	    (hn-item-posted-ago back-item)
+	    (comment-count-str comment-count))))
+
 (defgeneric printable-items (page curmaxx)
   (:documentation
    "prepare page items for printing to the screen"))
@@ -287,17 +305,6 @@
 
 (defmethod instructions-str ((page comments-page))
   (format nil "[b]ack; [q]uit~%<username>to view user"))
-
-(defmethod subtitle-str (page) "")
-
-(defmethod subtitle-str ((page comments-page))
-  (let ((back-item (comments-page-back-item page))
-	(comment-count (length (comments-page-comments page))))
-    (format nil "~d points by ~a ~a | ~a"
-	    (hn-item-points back-item)
-	    (hn-item-posted-by back-item)
-	    (hn-item-posted-ago back-item)
-	    (comment-count-str comment-count))))
 
 ;; handle valid user commands
 (defun handle-default (cmd page)
