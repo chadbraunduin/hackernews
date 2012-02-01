@@ -32,6 +32,13 @@ I developed this on a Ubuntu machine. The requirements I know of are:
     cd hackernews
     sbcl --load save-core.lisp
     ./hackernews
+    
+## Known Installation Issues
+You may get the following error while installing hackernews
+    Could not open library 'libncurses.so': /usr/lib/libncurses.so: file too short.
+The fix is:
+    sudo mv /usr/lib/libncurses.so{,.bak}
+    sudo ln -s /lib/libncurses.so.5 /usr/lib/libncurses.so
 
 ## Commands
 ### All pages
