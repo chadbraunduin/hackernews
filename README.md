@@ -1,4 +1,3 @@
-
 # Hacker News in the Terminal
 
 Written in Common Lisp
@@ -22,7 +21,7 @@ I developed this on a Ubuntu machine. The requirements I know of are:
 ## Installation Instructions (Ubuntu)
     sudo apt-get install ncurses-dev sbcl lynx
     git clone git@github.com:chadbraunduin/hackernews.git
-    cd hacker-news
+    cd hackernews
     sbcl --load save-core.lisp
     ./hackernews
 
@@ -30,7 +29,7 @@ I developed this on a Ubuntu machine. The requirements I know of are:
     *install ncurses-dev library, sbcl, and lynx*
     yum install ncurses-devel #install ncurses dev on Red Hat / Fedora
     git clone git@github.com:chadbraunduin/hackernews.git
-    cd hacker-news
+    cd hackernews
     sbcl --load save-core.lisp
     ./hackernews
 
