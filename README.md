@@ -1,6 +1,6 @@
 # Hacker News in the Terminal
 
-Written in Common Lisp
+Written in Common Lisp, hackernews is a command-line application which displays the popular programming site in the terminal.
 
 ## Inspiration
 The inspiration for this came from the [hacker-top](http://www.catonmat.net/blog/follow-hacker-news-from-the-console/) program written in Python.
